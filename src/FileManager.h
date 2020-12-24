@@ -15,9 +15,9 @@
 #include "stdio.h"
 #include <string>
 
-namespace fs = std::filesystem;
+namespace fs = std::experimental::filesystem;
 void move (const char *from,const char *to);
-void copy (std::filesystem::path what, std::filesystem::path to);
+void copy (fs::path what, fs::path to);
 void delete_f(const char *file);
 unsigned long size(std::string dest);
 void show_all(char *dest);
