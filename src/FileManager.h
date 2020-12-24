@@ -16,11 +16,11 @@
 #include <string>
 
 namespace fs = std::experimental::filesystem;
-void move (const char *from,const char *to);
-void copy (fs::path what, fs::path to);
-void delete_f(const char *file);
+int move_f (const char *from,const char *to);
+int copy_f (fs::path what, fs::path to);
+int delete_f(const char *file);
 unsigned long size(std::string dest);
-void show_all(char *dest);
-void procfs();
+int show_all(char *dest);
+int procfs();
 int executeRequest(int argc, char *argv[]);
 #endif //LAB2_FILE_H

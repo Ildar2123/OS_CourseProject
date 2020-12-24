@@ -4,12 +4,12 @@
 #include "FileManager.h"
 #include <iostream>
 
-
-
-void move(const char *from,const char *to){
-    rename(from, to);
+int move_f(const char *from, const char *to)
+{
+    return rename(from, to);
 }
-void copy (fs::path what, fs::path to){
+int copy_f(fs::path what, fs::path to)
+{
     try
     {
         fs::create_directories(to);
@@ -18,51 +18,66 @@ void copy (fs::path what, fs::path to){
     catch (std::exception &ex)
     {
         std::cout << ex.what();
-
+        return -1;
     }
+    return 0;
 }
 
-void delete_f(const char *file){
-    remove(file);
+int delete_f(const char *file)
+{
+    return remove(file);
 }
 
-unsigned long size(std::string dest){
+unsigned long size(std::string dest)
+{
     struct stat fileInfo;
-    unsigned long size_tot=0;
+    unsigned long size_tot = 0;
 
-    if(stat(dest.c_str(), &fileInfo)!=0){
-        std::string err="Нет информации о файле "+dest;
+    if (stat(dest.c_str(), &fileInfo) != 0)
+    {
+        std::string err = "Нет информации о файле " + dest;
         throw err;
     }
 
-    if (S_ISDIR(fileInfo.st_mode)){
-        DIR *dir=opendir(dest.c_str());
-        if (dir == nullptr){
-            std::string err="Папка"+ dest +"не открывается";
+    if (S_ISDIR(fileInfo.st_mode))
+    {
+        DIR *dir = opendir(dest.c_str());
+        if (dir == nullptr)
+        {
+            std::string err = "Папка" + dest + "не открывается";
             throw err;
         }
 
         dirent *contentInfo;
-        while ((contentInfo = readdir(dir))!=nullptr){
-            if ((strcmp(contentInfo->d_name,".")!=0)&&(strcmp(contentInfo->d_name,"..")!=0)){
-                std::string pathFile=dest+"/"+contentInfo->d_name;
-                size_tot+=size(pathFile);
+        while ((contentInfo = readdir(dir)) != nullptr)
+        {
+            if ((strcmp(contentInfo->d_name, ".") != 0) && (strcmp(contentInfo->d_name, "..") != 0))
+            {
+                std::string pathFile = dest + "/" + contentInfo->d_name;
+                size_tot += size(pathFile);
             }
         }
         closedir(dir);
         return size_tot;
     }
-    else return fileInfo.st_size;
+    else
+        return fileInfo.st_size;
 }
 
-void show_all(char *dest){
+int show_all(char *dest)
+{
     DIR *dir = opendir(dest);
-    if (dir == nullptr) std::cout<<"проблема с путём";
+    if (dir == nullptr)
+    {
+        std::cout << "проблема с путём";
+        return -1;
+    }
     dirent *contentInfo;
-    std::cout<<"В каталоге "<<dest<<":"<<std::endl;
-    while ((contentInfo=readdir(dir))!= nullptr)
-        std::cout<<contentInfo->d_name<<std::endl;
+    std::cout << "В каталоге " << dest << ":" << std::endl;
+    while ((contentInfo = readdir(dir)) != nullptr)
+        std::cout << contentInfo->d_name << std::endl;
     closedir(dir);
+    return 0;
 }
 std::string getPidInfo(std::ifstream &file, const int &offset)
 {
@@ -91,17 +106,22 @@ char *getContent(char *str)
 
     return buf;
 }
-void procfs(){
+int procfs()
+{
     DIR *dir = opendir("/proc/");
+    if (dir == nullptr)
+    {
+        return -1;
+    }
 
     dirent *contentInfo;
 
-    std::cout << std::setiosflags(std::ios::left);
-    std::cout << std::setw(50) << "COMM";
-    std::cout << std::setw(15) << "PID";
-    std::cout << std::setw(15) << "STATE";
-    std::cout << std::setw(15) << "PPID";
-    std::cout << std::setw(15) << "NICE" << std::endl;
+    // std::cout << std::setiosflags(std::ios::left);
+    // std::cout << std::setw(50) << "COMM";
+    // std::cout << std::setw(15) << "PID";
+    // std::cout << std::setw(15) << "STATE";
+    // std::cout << std::setw(15) << "PPID";
+    // std::cout << std::setw(15) << "NICE" << std::endl;
 
     while ((contentInfo = readdir(dir)) != nullptr)
     {
@@ -118,73 +138,81 @@ void procfs(){
                 throw error;
             }
 
-            std::cout << std::setw(50) << getPidInfo(pidInfo, 2);
-            std::cout << std::setw(15) << pid;
-            std::cout << std::setw(15) << getPidInfo(pidInfo, 1);
-            std::cout << std::setw(15) << getPidInfo(pidInfo, 1);
-            std::cout << std::setw(15) << getPidInfo(pidInfo, 15) << std::endl;
+            // std::cout << std::setw(50) << getPidInfo(pidInfo, 2);
+            // std::cout << std::setw(15) << pid;
+            // std::cout << std::setw(15) << getPidInfo(pidInfo, 1);
+            // std::cout << std::setw(15) << getPidInfo(pidInfo, 1);
+            // std::cout << std::setw(15) << getPidInfo(pidInfo, 15) << std::endl;
         }
         delete pid;
     }
 
     closedir(dir);
-
+    return 0;
 }
-int executeRequest(int argc, char *argv[]) {
+int executeRequest(int argc, char *argv[])
+{
     using std::cout;
     using std::endl;
-    if (argc > 1) {
-        if (strcmp(argv[1],"help")==0 || strcmp(argv[1],"-help")==0 ||strcmp(argv[1],"-h")==0) {
+    if (argc > 1)
+    {
+        if (strcmp(argv[1], "help") == 0 || strcmp(argv[1], "-help") == 0 || strcmp(argv[1], "-h") == 0)
+        {
             cout << "Группа: ИС-841" << endl;
             cout << "Авторы:" << endl;
             cout << "Хабибулин Ильдар" << endl;
             cout
-                    << "Краткое описание:\n Проект работает с файловой системы. Умеет перемещать, копировать, удалять файлы\n";
+                << "Краткое описание:\n Проект работает с файловой системы. Умеет перемещать, копировать, удалять файлы\n";
             cout << "Так же проект умеет подсчитывать общий размер указанной дериктории или файла и др.";
-            cout<<endl<<"Аргументы:"<<endl;
-            cout<<"1) -move <oldPlace> <NewPlace> \t\t\tперемещает файл"<<endl;
-            cout<<"./lab2_20 -move File.sh /folder/File.sh"<<endl;
-            cout<<"2)- copy <File> <Destination> \t\t\tкопирует файл в пункт назначения"<<endl;
-            cout<<"./lab2_20 -copy File.sh ./src"<<endl;
-            cout<<"3) -delete <File>\t\t\t\tудаляет файл"<<endl;
-            cout<<"./lab2_20 -delete File.sh"<<endl;
-            cout<<"4) -size <Destination> or <File>\t\tпоказывает размер папки\\файла"<<endl;
-            cout<<"./lab2_20 -size home/os || ./lab2_20 File.sh"<<endl;
-            cout<<"5) -ls <Destination>\t\t\t\tотображает размер выбранной папки"<<endl;
-            cout<<"./lab2_20 /home/os"<<endl;
-            cout<<"6) -procfs \t\t\t\t\tотображает все процессы procfs"<<endl;
-            cout<<"./lab2_20 -procfs"<<endl;
-        }// } else if (argc > 1) {
-        if (strcmp(argv[1],"-move")== 0 && argc > 3) {
-            move(argv[2], argv[3]);
+            cout << endl
+                 << "Аргументы:" << endl;
+            cout << "1) -move_f <oldPlace> <NewPlace> \t\t\tперемещает файл" << endl;
+            cout << "./lab2_20 -move_f File.sh /folder/File.sh" << endl;
+            cout << "2)- copy_f <File> <Destination> \t\t\tкопирует файл в пункт назначения" << endl;
+            cout << "./lab2_20 -copy_f File.sh ./src" << endl;
+            cout << "3) -delete <File>\t\t\t\tудаляет файл" << endl;
+            cout << "./lab2_20 -delete File.sh" << endl;
+            cout << "4) -size <Destination> or <File>\t\tпоказывает размер папки\\файла" << endl;
+            cout << "./lab2_20 -size home/os || ./lab2_20 File.sh" << endl;
+            cout << "5) -ls <Destination>\t\t\t\tотображает размер выбранной папки" << endl;
+            cout << "./lab2_20 /home/os" << endl;
+            cout << "6) -procfs \t\t\t\t\tотображает все процессы procfs" << endl;
+            cout << "./lab2_20 -procfs" << endl;
+        } // } else if (argc > 1) {
+        if (strcmp(argv[1], "-move_f") == 0 && argc > 3)
+        {
+            move_f(argv[2], argv[3]);
         }
 
-        if (strcmp(argv[1],"-copy")== 0 && argc > 3) {
-            copy(argv[2], argv[3]);
+        if (strcmp(argv[1], "-copy_f") == 0 && argc > 3)
+        {
+            copy_f(argv[2], argv[3]);
         }
 
-        if (strcmp(argv[1],"-delete")== 0 && argc > 2) {
+        if (strcmp(argv[1], "-delete") == 0 && argc > 2)
+        {
             delete_f(argv[2]);
         }
 
-        if (strcmp(argv[1],"-size")== 0) {
+        if (strcmp(argv[1], "-size") == 0)
+        {
             std::cout << "Byte:" << size(argv[2]) << std::endl;
         }
 
-        if (strcmp(argv[1],"-ls")== 0) {
+        if (strcmp(argv[1], "-ls") == 0)
+        {
             show_all(argv[2]);
         }
 
-        if (strcmp(argv[1],"-procfs")== 0) {
+        if (strcmp(argv[1], "-procfs") == 0)
+        {
             procfs();
         }
         //} else
-
-    } else{
-        cout << "Недостаточно аргументов или команда не верна. Используйте -help";}
-        return 0;
+    }
+    else
+    {
+        cout << "Недостаточно аргументов или команда не верна. Используйте -help";
+    }
+    return 0;
 }
-
-
-
-
