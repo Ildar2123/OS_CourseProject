@@ -9,7 +9,7 @@
 void move(const char *from,const char *to){
     rename(from, to);
 }
-void copy (std::filesystem::path what, std::filesystem::path to){
+void copy (fs::path what, fs::path to){
     try
     {
         fs::create_directories(to);
